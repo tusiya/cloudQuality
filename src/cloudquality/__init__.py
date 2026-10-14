@@ -5,8 +5,9 @@
 from variants.intuition import read_survey
 import structure    # plik zawierający kryteria oceny
 
-print(structure.criteria)
+# print(structure.criteria)
 
-#print(read_survey().head())
+print(read_survey().columns)
 
 print("Welcome!")
+
