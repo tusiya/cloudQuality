@@ -27,6 +27,20 @@ def read_survey():
     cols[18] = "O14 Funkcjonalna możliwość personalizacji"
     cols[19] = "O15 Konfigurowalność interfejsu użytkownika"
     cols[20] = "O16 Kontrola dostępu"
+
+    cols[21] = "W1 Samoopis interfejsu użytkownika vs Ustawienie wartości domyślnych"
+    cols[22] = "W2 Możliwość anulowania działań vs Ochrona przed błędami użytkownika"
+    cols[23] = "W3 Współistnienie z innymi usługami vs Zgodność formatów danych"
+    cols[24] = "W4 Funkcjonalna możliwość personalizacji vs Konfigurowalność interfejsu użytkownika"
+
+    cols[25] = "W5 Kompletność funcjonalna vs Poprawność funkcjonalna"
+    cols[26] = "W6 Wydajność czasowa vs Efektywność interakcji"
+    cols[27] = "W7 Łatwość użycia vs Zrozumiałość obsługi"
+    cols[28] = "W8 Łatwość użycia vs Łatwość opanowania obsługi"
+    cols[29] = "W9 Zrozumiałość obsługi vs Łatwość opanowania obsługi"
+    cols[30] = "W10 Integracyjność vs Konfigurowalność"
+
+
     
     survey.columns = cols
 
