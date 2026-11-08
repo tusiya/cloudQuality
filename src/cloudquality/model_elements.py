@@ -285,20 +285,69 @@ def load_standard_quality_model() -> CompositeElement:
 
 # --- Library Execution Helper ---
 
+def collect_node_scores(
+    element: ModelElement,
+    context: Dict[str, Any],
+    scenarios: List[EvaluationScenario],
+    current_depth: int,
+    max_depth: int
+) -> Dict[str, Any]:
+    """
+    Recursively collects evaluation results for an element and its subelements
+    up to max_depth.
+    """
+    # 1. Calculate scenario scores for the current element
+    node_results = {
+        "name": element.name,
+        "type": "composite" if isinstance(element, CompositeElement) else "procedure",
+        "scores": {
+            scenario.name: element.calculate_score(context, scenario)
+            for scenario in scenarios
+        }
+    }
+
+    # 2. If element is a composite and we haven't reached max_depth, drill down into children
+    if isinstance(element, CompositeElement) and current_depth < max_depth and element.subelements:
+        node_results["subelements"] = [
+            collect_node_scores(child, context, scenarios, current_depth + 1, max_depth)
+            for child in element.subelements
+        ]
+
+    return node_results
+
+
 def evaluate(
     model: ModelElement, 
     context: Dict[str, Any], 
-    custom_scenarios: Optional[List[EvaluationScenario]] = None
-) -> Dict[str, float]:
-    """Runs evaluation on a model tree across default and optional custom scenarios."""
+    custom_scenarios: Optional[List[EvaluationScenario]] = None,
+    depth: int = 1
+) -> Dict[str, Any]:
+    """
+    Evaluates the model across scenarios up to the specified structural depth.
+    - depth=1: Root scores only
+    - depth=2: Root + Level 1 children
+    - depth=3+: Deeper sub-trees / leaves
+    """
     scenarios_to_run = list(DEFAULT_SCENARIOS)
     if custom_scenarios:
         scenarios_to_run.extend(custom_scenarios)
 
-    return {
-        scenario.name: model.calculate_score(context, scenario) 
-        for scenario in scenarios_to_run
-    }
+    return collect_node_scores(model, context, scenarios_to_run, current_depth=1, max_depth=depth)
+
+
+def print_evaluation_results(result_node: Dict[str, Any], indent_level: int = 0) -> None:
+    """Pretty prints evaluation results hierarchically based on depth."""
+    indent = "  " * indent_level
+    prefix = "└── " if indent_level > 0 else ""
+    
+    print(f"{indent}{prefix}[{result_node['name']}] ({result_node['type']})")
+    for scenario_name, score in result_node["scores"].items():
+        print(f"{indent}    │  {scenario_name}: {score:.2f}")
+
+    if "subelements" in result_node:
+        print(f"{indent}    │")
+        for child_node in result_node["subelements"]:
+            print_evaluation_results(child_node, indent_level + 1)
 
 
 #---------Loading Input---------------

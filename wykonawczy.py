@@ -1,5 +1,5 @@
 from cloudquality.model_elements import load_standard_quality_model, evaluate, register_transformation
-from cloudquality.model_elements import build_payload_from_files
+from cloudquality.model_elements import build_payload_from_files, print_evaluation_results
 from cloudquality.model_elements import AggregationStrategy, EvaluationScenario, TransformationStrategy
 from cloudquality.model_elements import CompositeElement, ProcedureElement
 
@@ -80,8 +80,12 @@ custom_scenario = EvaluationScenario(
     is_direct=True
 )
 
-results = evaluate(model, user_payload, custom_scenarios=[custom_scenario])
+results = evaluate(model, user_payload, custom_scenarios=[custom_scenario], depth = 3)
 
 print("\n--- EVALUATION RESULTS ---")
-for scenario, score in results.items():
-    print(f"{scenario}: {score:.2f}")
+print(results)
+print("\n--- PRETTY EVALUATION RESULTS ---")
+print_evaluation_results(results)
+# 
+# for scenario, score in results.items():
+#     print(f"{scenario}: {score:.2f}")
