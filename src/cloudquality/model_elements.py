@@ -202,14 +202,112 @@ class CompositeElement(ModelElement):
 # --- Standard Library Transformation Rules ---
 
 class DostepnoscUslugiTransformation(TransformationStrategy):
+    """Input: percentage value of Dostępność Usługi"""
     def evaluate(self, raw_input: Any) -> float:
-        val = float(raw_input)
+        try:
+            val = float(raw_input)
+        except (ValueError, TypeError):
+            raise TypeError(f"Invalid input type for DostepnoscUslugiTransformation: {type(raw_input)}")
         if val < 0.95: return 1.0
         elif val < 0.99: return 2.0
         elif val < 0.999: return 3.0
         elif val < 0.9999: return 4.0
         else: return 5.0
 
+class BadanieScenariuszyTransformation(TransformationStrategy):
+    """Input: List of scores from 0 to 1 
+    1 means the condition (for example functionality working) is met, 0 means it is not met"""
+    def evaluate(self, raw_input: Any) -> float:
+        values = []
+        if raw_input is None:
+            raise ValueError("Input for BadanieScenariuszyTransformation cannot be None.")
+
+        # Normalize single float/int into a list
+        if isinstance(raw_input, (int, float)):
+            values = [float(raw_input)]
+        elif isinstance(raw_input, (list, tuple)):
+            if not raw_input:
+                raise ValueError("Input list for BadanieScenariuszyTransformation cannot be empty.")
+            values = [float(x) for x in raw_input]
+        else:
+            raise TypeError(f"Invalid input type for BadanieScenariuszyTransformation: {type(raw_input)}")
+
+        # Validate and cut values to [0.0, 1.0] range
+        cut_values = [max(0.0, min(1.0, val)) for val in values]
+        
+        return 1+4*sum(cut_values)/len(cut_values)
+
+class EfektywnoscInterakcjiTransformation(TransformationStrategy):
+    """Input: List of steps needed to make each task"""
+    def evaluate(self, raw_input: Any) -> float:
+        values = []
+        if raw_input is None:
+            raise ValueError("Input for EfektywnoscInterakcji cannot be None.")
+
+        # Normalize single float/int into a list
+        if isinstance(raw_input, (int, float)):
+            values = [float(raw_input)]
+        elif isinstance(raw_input, (list, tuple)):
+            if not raw_input:
+                raise ValueError("Input list for EfektywnoscInterakcji cannot be empty.")
+            values = [float(x) for x in raw_input]
+        else:
+            raise TypeError(f"Invalid input type for EfektywnoscInterakcji: {type(raw_input)}")
+
+        score_values = [1 if val <= 0 or val >= 12 
+                        else 2 if val >= 10 
+                        else 3 if val >= 7 
+                        else 4 if val >= 4 
+                        else 5 for val in values]
+    
+        return sum(score_values)/len(score_values)
+
+
+class WydajnoscCzasowaTransformation(TransformationStrategy):
+    """Input: List of average time each task takes. If the input is None it is assumed that score is maximum"""
+    def evaluate(self, raw_input: Any) -> float:
+        values = []
+
+        # Normalize single float/int into a list
+        if isinstance(raw_input, (int, float)):
+            values = [float(raw_input)]
+        elif isinstance(raw_input, (list, tuple)):
+            if not raw_input:
+                raise ValueError("Input list for WydajnoscCzasowaTransformation cannot be empty.")
+            values = [0 if x==None else float(x) for x in raw_input]
+        else:
+            raise TypeError(f"Invalid input type for WydajnoscCzasowaTransformation: {type(raw_input)}")
+
+        score_values = [5 if val <= 1 
+                        else 4 if val <= 2 
+                        else 3 if val >= 5 
+                        else 2 if val >= 10 
+                        else 1 for val in values]
+
+        return sum(score_values)/len(score_values)
+
+class WydajnoscCzasowaTransformation(TransformationStrategy):
+    """Input: List of average time each task takes. If the input is None it is assumed that score is maximum"""
+    def evaluate(self, raw_input: Any) -> float:
+        values = []
+
+        # Normalize single float/int into a list
+        if isinstance(raw_input, (int, float)):
+            values = [float(raw_input)]
+        elif isinstance(raw_input, (list, tuple)):
+            if not raw_input:
+                raise ValueError("Input list for WydajnoscCzasowaTransformation cannot be empty.")
+            values = [0 if x==None else float(x) for x in raw_input]
+        else:
+            raise TypeError(f"Invalid input type for WydajnoscCzasowaTransformation: {type(raw_input)}")
+
+        score_values = [5 if val <= 1 
+                        else 4 if val <= 2 
+                        else 3 if val >= 5 
+                        else 2 if val >= 10 
+                        else 1 for val in values]
+
+        return sum(score_values)/len(score_values)
 
 
 # --- Strategy Registry ---
