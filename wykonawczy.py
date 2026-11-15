@@ -9,13 +9,13 @@ from cloudquality.model_elements import CompositeElement, ProcedureElement
 
 
 
-# 1. (Optonal) Register custom transformation rule
-class LatencyTransformation(TransformationStrategy):
-    def evaluate(self, raw_input: Any) -> float:
-        ms = float(raw_input)
-        return 5.0 if ms < 100 else (3.0 if ms < 500 else 1.0)
+# # 1. (Optonal) Register custom transformation rule
+# class LatencyTransformation(TransformationStrategy):
+#     def evaluate(self, raw_input: Any) -> float:
+#         ms = float(raw_input)
+#         return 5.0 if ms < 100 else (3.0 if ms < 500 else 1.0)
 
-register_transformation("latency_rule", LatencyTransformation())
+# register_transformation("latency_rule", LatencyTransformation())
 
 # 2. Load live model instance
 model = load_standard_quality_model()
@@ -23,16 +23,16 @@ model = load_standard_quality_model()
 print("--- INITIAL LIVE MODEL SCHEMA ---")
 print(model.to_dict())
 
-# 3. (Optional) Modify live tree nodes
-niezawodnosc_node = model.find_element("Niezawodność Usługi")
+# # 3. (Optional) Modify live tree nodes
+# niezawodnosc_node = model.find_element("Niezawodność Usługi")
 
-if isinstance(niezawodnosc_node, CompositeElement):
-    # Attempting to remove non-existent node now issues a warning!
-    niezawodnosc_node.remove_subelement("Direct User Score")
+# if isinstance(niezawodnosc_node, CompositeElement):
+#     # Attempting to remove non-existent node now issues a warning!
+#     niezawodnosc_node.remove_subelement("Direct User Score")
     
-    # Adding Latency updates subelements AND appends 1 matching weight (0.4)
-    new_proc = ProcedureElement("Latency", LatencyTransformation(), strategy_name="latency_rule")
-    niezawodnosc_node.add_subelement(new_proc, default_weight=0.4)
+#     # Adding Latency updates subelements AND appends 1 matching weight (0.4)
+#     new_proc = ProcedureElement("Latency", LatencyTransformation(), strategy_name="latency_rule")
+#     niezawodnosc_node.add_subelement(new_proc, default_weight=0.4)
 
 print("\n--- UPDATED LIVE MODEL SCHEMA ---")
 print(model.to_dict())

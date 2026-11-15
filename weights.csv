@@ -1,4 +1,4 @@
 parent_name,child_name,weight
-Niezawodność Usługi,Dostępność Usługi,0.6
-Niezawodność Usługi,Latency,0.4
-System Quality Model,Niezawodność Usługi,1.0
+Niezawodność,Dostępność Usługi,1.0
+System Quality Model,Funkcjonalność,1.0
+System Quality Model,Wydajność,1.0

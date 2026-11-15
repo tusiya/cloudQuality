@@ -204,55 +204,43 @@ class CompositeElement(ModelElement):
 class DostepnoscUslugiTransformation(TransformationStrategy):
     """Input: percentage value of Dostępność Usługi"""
     def evaluate(self, raw_input: Any) -> float:
-        try:
-            val = float(raw_input)
-        except (ValueError, TypeError):
-            raise TypeError(f"Invalid input type for DostepnoscUslugiTransformation: {type(raw_input)}")
-        if val < 0.95: return 1.0
-        elif val < 0.99: return 2.0
-        elif val < 0.999: return 3.0
-        elif val < 0.9999: return 4.0
+        if not isinstance(raw_input, (int, float)):
+            raise TypeError(f"Invalid input for DostepnoscUslugiTransformation: {type(raw_input)}")
+            
+        if raw_input < 0.95: return 1.0
+        elif raw_input < 0.99: return 2.0
+        elif raw_input < 0.999: return 3.0
+        elif raw_input < 0.9999: return 4.0
         else: return 5.0
 
-class BadanieScenariuszyTransformation(TransformationStrategy):
+class OcenazListyTransformation(TransformationStrategy):
     """Input: List of scores from 0 to 1 
     1 means the condition (for example functionality working) is met, 0 means it is not met"""
     def evaluate(self, raw_input: Any) -> float:
-        values = []
-        if raw_input is None:
-            raise ValueError("Input for BadanieScenariuszyTransformation cannot be None.")
-
-        # Normalize single float/int into a list
         if isinstance(raw_input, (int, float)):
-            values = [float(raw_input)]
-        elif isinstance(raw_input, (list, tuple)):
-            if not raw_input:
-                raise ValueError("Input list for BadanieScenariuszyTransformation cannot be empty.")
-            values = [float(x) for x in raw_input]
+            values = [raw_input]
+        elif isinstance(raw_input, (list, tuple)) and raw_input:
+            if not all(isinstance(x, (int, float)) for x in raw_input):
+                raise TypeError(f"Invalid input type for OcenazListyTransformation: {type(raw_input)}")
+            values = raw_input
         else:
-            raise TypeError(f"Invalid input type for BadanieScenariuszyTransformation: {type(raw_input)}")
+            raise TypeError(f"Invalid input type for OcenazListyTransformation: {type(raw_input)}")
 
-        # Validate and cut values to [0.0, 1.0] range
         cut_values = [max(0.0, min(1.0, val)) for val in values]
         
         return 1+4*sum(cut_values)/len(cut_values)
 
-class EfektywnoscInterakcjiTransformation(TransformationStrategy):
+class LiczbaKrokowTransformation(TransformationStrategy):
     """Input: List of steps needed to make each task"""
     def evaluate(self, raw_input: Any) -> float:
-        values = []
-        if raw_input is None:
-            raise ValueError("Input for EfektywnoscInterakcji cannot be None.")
-
-        # Normalize single float/int into a list
         if isinstance(raw_input, (int, float)):
-            values = [float(raw_input)]
-        elif isinstance(raw_input, (list, tuple)):
-            if not raw_input:
-                raise ValueError("Input list for EfektywnoscInterakcji cannot be empty.")
-            values = [float(x) for x in raw_input]
+            values = [raw_input]
+        elif isinstance(raw_input, (list, tuple)) and raw_input:
+            if not all(isinstance(x, (int, float)) for x in raw_input):
+                raise TypeError(f"Invalid input type for LiczbaKrokowTransformation: {type(raw_input)}")
+            values = raw_input
         else:
-            raise TypeError(f"Invalid input type for EfektywnoscInterakcji: {type(raw_input)}")
+            raise TypeError(f"Invalid input type for LiczbaKrokowTransformation: {type(raw_input)}")
 
         score_values = [1 if val <= 0 or val >= 12 
                         else 2 if val >= 10 
@@ -263,56 +251,79 @@ class EfektywnoscInterakcjiTransformation(TransformationStrategy):
         return sum(score_values)/len(score_values)
 
 
-class WydajnoscCzasowaTransformation(TransformationStrategy):
-    """Input: List of average time each task takes. If the input is None it is assumed that score is maximum"""
+class SredniCzasReakcjiTransformation(TransformationStrategy):
+    """Input: 2 values - first is number of tasks completed, second is number of all tasks"""
     def evaluate(self, raw_input: Any) -> float:
-        values = []
-
-        # Normalize single float/int into a list
         if isinstance(raw_input, (int, float)):
-            values = [float(raw_input)]
+            values = [raw_input]
         elif isinstance(raw_input, (list, tuple)):
-            if not raw_input:
-                raise ValueError("Input list for WydajnoscCzasowaTransformation cannot be empty.")
-            values = [0 if x==None else float(x) for x in raw_input]
+            values = list(raw_input)
         else:
-            raise TypeError(f"Invalid input type for WydajnoscCzasowaTransformation: {type(raw_input)}")
+            raise TypeError(f"Invalid input for SredniCzasReakcjiTransformation: {type(raw_input)}")
 
-        score_values = [5 if val <= 1 
-                        else 4 if val <= 2 
-                        else 3 if val >= 5 
-                        else 2 if val >= 10 
-                        else 1 for val in values]
+        score_values = []
+        for x in values:
+            if x is None:
+                score_values.append(5.0)
+            else:
+                val = float(x)
+                score_values.append(
+                    5.0 if val <= 1
+                    else 4.0 if val <= 2
+                    else 3.0 if val <= 5
+                    else 2.0 if val <= 10
+                    else 1.0
+                )
 
         return sum(score_values)/len(score_values)
 
-class WydajnoscCzasowaTransformation(TransformationStrategy):
+
+class SukcesZadaniaTransformation(TransformationStrategy):
     """Input: List of average time each task takes. If the input is None it is assumed that score is maximum"""
     def evaluate(self, raw_input: Any) -> float:
-        values = []
+        if not isinstance(raw_input, (list, tuple)) or len(raw_input) != 2:
+            raise ValueError(f"Invalid input type for SukcesZadaniaTransformation: {type(raw_input)}")
 
-        # Normalize single float/int into a list
-        if isinstance(raw_input, (int, float)):
-            values = [float(raw_input)]
-        elif isinstance(raw_input, (list, tuple)):
-            if not raw_input:
-                raise ValueError("Input list for WydajnoscCzasowaTransformation cannot be empty.")
-            values = [0 if x==None else float(x) for x in raw_input]
-        else:
-            raise TypeError(f"Invalid input type for WydajnoscCzasowaTransformation: {type(raw_input)}")
+        if not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in raw_input):
+            raise ValueError(f"Invalid input type for SukcesZadaniaTransformation: {type(raw_input)}")
 
-        score_values = [5 if val <= 1 
-                        else 4 if val <= 2 
-                        else 3 if val >= 5 
-                        else 2 if val >= 10 
-                        else 1 for val in values]
+        completed, total = raw_input
+        if total <= 0:
+            raise ValueError("Total number of tasks must be greater than 0.")
 
-        return sum(score_values)/len(score_values)
+        return 1 + 4*(completed/total)
+
+class OcenyEkspertowTransformation(TransformationStrategy):
+    def evaluate(self, raw_input: Any) -> float:
+        if not isinstance(raw_input, (list, tuple)) or not raw_input:
+            raise TypeError("Input must be a non-empty list of research studies.")
+
+        research_averages = []
+
+        for item in raw_input:
+            if isinstance(item, (int, float)):
+                research_averages.append(item)
+            elif isinstance(item, (list, tuple)) and item:
+                clean_scores = [
+                    x for x in item if isinstance(x, (int, float))
+                ]
+                if clean_scores:
+                    research_averages.append(sum(clean_scores) / len(clean_scores))
+
+        if not research_averages:
+            raise ValueError("No valid expert ratings found in the provided research studies.")
+
+        return sum(research_averages) / len(research_averages)
 
 
 # --- Strategy Registry ---
 TRANSFORMATION_REGISTRY: Dict[str, TransformationStrategy] = {
     "dostepnosc_uslugi": DostepnoscUslugiTransformation(),
+    "ocena_z_listy": OcenazListyTransformation(),
+    "oceny_ekspertow": OcenyEkspertowTransformation(),
+    "sredni_czas_reakcji": SredniCzasReakcjiTransformation(),
+    "liczba_krokow": LiczbaKrokowTransformation(),
+    "sukces_zadania": SukcesZadaniaTransformation()
 }
 
 def register_transformation(name: str, strategy: TransformationStrategy) -> None:
@@ -352,22 +363,251 @@ def build_model_from_dict(node_def: Dict[str, Any]) -> ModelElement:
     
 
 STANDARD_MODEL_SCHEMA = {
-    "name": "System Quality Model",
+    "name": "Model jakości",
     "type": "composite",
-    "default_weights": [1.0],
+    "default_weights": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     "subelements": [
         {
-            "name": "Niezawodność Usługi",
+            "name": "Funkcjonalność",
+            "type": "composite",
+            "default_weights": [1.0, 1.0],
+            "subelements": [
+                {
+                    "name": "Kompletność funkcjonalna",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Pokrycie funkcjonalne",
+                            "type": "procedure",
+                            "strategy": "ocena_z_listy"
+                        }
+                    ]
+                },
+                {
+                    "name": "Poprawność funkcjonalna",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Poprawność funkcjonalna metryka",
+                            "type": "procedure",
+                            "strategy": "ocena_z_listy"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Wydajność",
+            "type": "composite",
+            "default_weights": [1.0, 1.0],
+            "subelements": [
+                {
+                    "name": "Wydajność czasowa",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Prawidłowy czas reakcji",
+                            "type": "procedure",
+                            "strategy": "sredni_czas_reakcji"
+                        }
+                    ]
+                },
+                {
+                    "name": "Efektywność interakcji",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Liczba kroków",
+                            "type": "procedure",
+                            "strategy": "liczba_krokow"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Satysfakcja",
+            "type": "composite",
+            "default_weights": [1.0, 1.0, 1.0, 1.0],
+            "subelements": [
+                {
+                    "name": "Łatwość użycia",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Sukces zadania użytkownika",
+                            "type": "procedure",
+                            "strategy": "sukces_zadania"
+                        }
+                    ]
+                },
+                {
+                    "name": "Zrozumiałość",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Możliwość monitorowania",
+                            "type": "composite",
+                            "default_weights": [1.0],
+                            "subelements": [
+                                {
+                                    "name": "Heurystyka 1",
+                                    "type": "procedure",
+                                    "strategy": "oceny_ekspertow"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Łatwość opanowania usługi",
+                    "type": "composite",
+                    "default_weights": [1.0, 1.0],
+                    "subelements": [
+                        {
+                            "name": "Samoopis interfejsu użytkownika",
+                            "type": "composite",
+                            "default_weights": [1.0, 1.0],
+                            "subelements": [
+                                {
+                                    "name": "Heurystyka 2",
+                                    "type": "procedure",
+                                    "strategy": "oceny_ekspertow"
+                                },
+                                {
+                                    "name": "Heurystyka 4",
+                                    "type": "procedure",
+                                    "strategy": "oceny_ekspertow"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Ustawienie wartości domyślnych",
+                            "type": "composite",
+                            "default_weights": [1.0],
+                            "subelements": [
+                                {
+                                    "name": "Heurystyka 6",
+                                    "type": "procedure",
+                                    "strategy": "oceny_ekspertow"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Odporność na błędy użytkownika",
+                    "type": "composite",
+                    "default_weights": [1.0, 1.0],
+                    "subelements": [
+                        {
+                            "name": "Możliwość anulowania działań",
+                            "type": "composite",
+                            "default_weights": [1.0],
+                            "subelements": [
+                                {
+                                    "name": "Heurystyka 3",
+                                    "type": "procedure",
+                                    "strategy": "oceny_ekspertow"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Ochrona przed błędami użytkownika",
+                            "type": "composite",
+                            "default_weights": [1.0],
+                            "subelements": [
+                                {
+                                    "name": "Heurystyka 5",
+                                    "type": "procedure",
+                                    "strategy": "oceny_ekspertow"
+                                }
+                            ]
+                        }
+                    ]
+                },
+            ]
+        },
+        {
+            "name": "Wiarygodność",
             "type": "composite",
             "default_weights": [1.0],
             "subelements": [
                 {
-                    "name": "Dostępność Usługi",
-                    "type": "procedure",
-                    "strategy": "dostepnosc_uslugi"
+                    "name": "Niezawodność",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Dostępność Usługi",
+                            "type": "procedure",
+                            "strategy": "dostepnosc_uslugi"
+                        }
+                    ]
+                },
+            ]
+        },
+        {
+            "name": "Elastyczność",
+            "type": "composite",
+            "default_weights": [1.0, 1.0],
+            "subelements": [
+                {
+                    "name": "Integracyjność",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Zgodność formatów danych",
+                            "type": "procedure",
+                            "strategy": "ocena_z_listy"
+                        }
+                    ]
+                },
+                {
+                    "name": "Konfigurowalność",
+                    "type": "composite",
+                    "default_weights": [1.0, 1.0],
+                    "subelements": [
+                        {
+                            "name": "Funkcjonalna możliwość personalizacji",
+                            "type": "procedure",
+                            "strategy": "ocena_z_listy"
+                        },
+                        {
+                            "name": "Konfigurowalność interfejsu użytkownika",
+                            "type": "procedure",
+                            "strategy": "ocena_z_listy"
+                        }
+                    ]
                 }
             ]
-        }
+        },
+        {
+            "name": "Ochrona",
+            "type": "composite",
+            "default_weights": [1.0],
+            "subelements": [
+                {
+                    "name": "Poufność",
+                    "type": "composite",
+                    "default_weights": [1.0],
+                    "subelements": [
+                        {
+                            "name": "Kontrola dostępu",
+                            "type": "procedure",
+                            "strategy": "ocena_z_listy"
+                        }
+                    ]
+                },
+            ]
+        },
     ]
 }
 
@@ -489,27 +729,57 @@ def load_quality_metrics_from_csv(file_path: str) -> Dict[str, List[float]]:
     return quality_metrics
 
 
-def load_procedure_inputs_from_csv(file_path: str) -> Dict[str, Any]:
+def _parse_token(token: str) -> Any:
+    """Converts a single scalar token into float, int, None, or string."""
+    cleaned = token.strip()
+    if cleaned == "" or cleaned.lower() in ("none", "null", "nan", "n/a"):
+        return None
+    try:
+        return float(cleaned) if "." in cleaned else int(cleaned)
+    except ValueError:
+        return cleaned
+    
+
+def _parse_cell(cell_str: str) -> Any:
+    """Converts a CSV text cell into a number (int/float) or a list of floats."""
+    cleaned = cell_str.strip()
+
+    if cleaned.startswith("[") and cleaned.endswith("]"):
+        inner = cleaned[1:-1].strip()
+        if not inner:
+            return []
+        return [_parse_token(x) for x in inner.split(",")]
+
+    return _parse_token(cleaned)
+
+    
+def load_procedure_inputs_from_csv(file_path: str, delimiter: str = ";") -> Dict[str, Any]:
     """
-    Parses a key-value CSV for raw procedure measurements (Procedure, Value).
+    Parses a semicolon-separated CSV for raw procedure measurements.
+    - 1 value column: parses as a single scalar or 1D list (e.g. 0.98 or [1, 0, 1])
+    - Multiple value columns: parses as a 2D list of studies (e.g. [[4.0, 5.0], [3.0, 4.0]])
     """
     procedure_inputs: Dict[str, Any] = {}
+
     with open(file_path, mode="r", encoding="utf-8-sig") as f:
-        reader = csv.reader(f)
-        header = next(reader, None)  # Skip header row if present
-        
+        reader = csv.reader(f, delimiter=delimiter)
+        header = next(reader, None)  # Skip header row
+
         for row in reader:
-            if len(row) >= 2 and row[0].strip():
-                proc_name = row[0].strip()
-                val_str = row[1].strip()
-                
-                # Convert to float/int if possible, otherwise keep string
-                try:
-                    val = float(val_str) if "." in val_str else int(val_str)
-                except ValueError:
-                    val = val_str
-                    
-                procedure_inputs[proc_name] = val
+            if not row or not row[0].strip():
+                continue
+
+            proc_name = row[0].strip()
+            # Filter out empty trailing cells (e.g. from rows with fewer columns)
+            raw_cells = [cell.strip() for cell in row[1:] if cell.strip()]
+
+            if not raw_cells:
+                continue
+
+            if len(raw_cells) == 1:
+                procedure_inputs[proc_name] = _parse_cell(raw_cells[0])
+            else:
+                procedure_inputs[proc_name] = [_parse_cell(cell) for cell in raw_cells]
 
     return procedure_inputs
 
