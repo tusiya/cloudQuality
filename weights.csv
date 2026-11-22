@@ -1,4 +1,8 @@
 parent_name,child_name,weight
 Niezawodność,Dostępność Usługi,1.0
-System Quality Model,Funkcjonalność,1.0
-System Quality Model,Wydajność,1.0
+Model jakości,Funkcjonalność,1.0
+Model jakości,Wydajność,1.0
+Model jakości,Satysfakcja,1.0
+Model jakości,Wiarygodność,1.0
+Model jakości,Elastyczność,1.0
+Model jakości,Ochrona,1.0

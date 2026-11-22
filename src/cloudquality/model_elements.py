@@ -40,13 +40,14 @@ class EvaluationScenario:
     name: str
     aggregation_strategy: AggregationStrategy
     is_direct: bool = False
+    use_expert_weights: bool = False
 
 
 # Standard Built-In Scenarios
 DEFAULT_SCENARIOS = [
-    EvaluationScenario("Scenario 1 (Transformed + Simple Avg)", SimpleAverageStrategy(), is_direct=False),
-    EvaluationScenario("Scenario 2 (Direct Score + Weighted Avg)", WeightedAverageStrategy(), is_direct=True),
-    EvaluationScenario("Scenario 3 (Transformed + Weighted Avg)", WeightedAverageStrategy(), is_direct=False),
+    EvaluationScenario("Scenario 1 (Transformed + Simple Avg)", WeightedAverageStrategy(), is_direct=False, use_expert_weights = True),
+    EvaluationScenario("Scenario 2 (Direct Score + Weighted Avg)", WeightedAverageStrategy(), is_direct=True, use_expert_weights = False),
+    EvaluationScenario("Scenario 3 (Transformed + Weighted Avg)", WeightedAverageStrategy(), is_direct=False, use_expert_weights = False),
 ]
 
 
@@ -81,7 +82,6 @@ class ProcedureElement(ModelElement):
                 raise KeyError(f"Missing quality metric input for procedure: '{self.name}'")
             val = quality_metrics[self.name]
             
-            # Normalize single scalar float/int values into a list
             if isinstance(val, (int, float)):
                 scores = [float(val)]
             elif isinstance(val, (list, tuple)):
@@ -91,7 +91,7 @@ class ProcedureElement(ModelElement):
             else:
                 raise TypeError(f"Invalid input type for quality metric '{self.name}': {type(val)}")
             
-            # Calculate simple average of all provided scores
+
             return sum(scores) / len(scores)
         else:
             procedure_inputs = context.get("procedure_inputs", {})
@@ -112,26 +112,26 @@ class CompositeElement(ModelElement):
         self, 
         name: str, 
         subelements: Optional[List[ModelElement]] = None,
-        default_weights: Optional[List[float]] = None
+        expert_weights: Optional[List[float]] = None
     ):
         super().__init__(name)
         self.subelements = subelements or []
-        
-        # Enforce weight alignment: exactly 1 weight per child subelement
-        if default_weights is None:
-            self.default_weights = {child.name: 1.0 for child in self.subelements}
+
+        if expert_weights is None:
+            self.expert_weights = {child.name: 1.0 for child in self.subelements}
         else:
-            self.default_weights = default_weights
+            self.expert_weights = expert_weights
 
     def calculate_score(self, context: Dict[str, Any], scenario: EvaluationScenario) -> float:
         if not self.subelements:
             return 0.0
 
         child_scores = [child.calculate_score(context, scenario) for child in self.subelements]
-        # Extract weights payload for this composite
-        raw_weights = context.get("weights", {}).get(self.name) or self.default_weights
+        if scenario.use_expert_weights:
+            raw_weights = self.expert_weights
+        else:
+            raw_weights = context.get("weights", {}).get(self.name) or self.expert_weights
         
-        # 1. Handle Named Dictionary Weights (New Preferred Way)
         if isinstance(raw_weights, dict):
             weights = []
             for child in self.subelements:
@@ -142,7 +142,6 @@ class CompositeElement(ModelElement):
                     )
                 weights.append(float(raw_weights[child.name]))
                 
-        # 2. Handle Legacy Positional Lists (Backward Compatibility)
         elif isinstance(raw_weights, (list, tuple)):
             if len(raw_weights) != len(self.subelements):
                 raise ValueError(
@@ -172,14 +171,14 @@ class CompositeElement(ModelElement):
     def add_subelement(self, element: ModelElement, default_weight: float = 1.0) -> None:
         """Adds a child node and keeps weights synchronized."""
         self.subelements.append(element)
-        self.default_weights.append(default_weight)
+        self.expert_weights.append(default_weight)
 
     def remove_subelement(self, name: str, raise_error: bool = False) -> bool:
         """Removes a child node by name and cleans up its corresponding weight."""
         for i, child in enumerate(self.subelements):
             if child.name == name:
                 self.subelements.pop(i)
-                self.default_weights.pop(i)
+                self.expert_weights.pop(i)
                 return True
 
         msg = f"Cannot remove subelement '{name}': Not found in composite '{self.name}'."
@@ -194,7 +193,7 @@ class CompositeElement(ModelElement):
         return {
             "name": self.name,
             "type": "composite",
-            "default_weights": list(self.default_weights),
+            "expert_weights": list(self.expert_weights),
             "subelements": [child.to_dict() for child in self.subelements]
         }
 
@@ -355,8 +354,8 @@ def build_model_from_dict(node_def: Dict[str, Any]) -> ModelElement:
     elif node_type == "composite":
         raw_children = node_def.get("subelements", [])
         children = [build_model_from_dict(child) for child in raw_children]
-        default_weights = node_def.get("default_weights")
-        return CompositeElement(name=name, subelements=children, default_weights=default_weights)
+        expert_weights = node_def.get("expert_weights")
+        return CompositeElement(name=name, subelements=children, expert_weights=expert_weights)
 
     else:
         raise ValueError(f"Unknown model node type: '{node_type}' in node '{name}'")
@@ -365,17 +364,17 @@ def build_model_from_dict(node_def: Dict[str, Any]) -> ModelElement:
 STANDARD_MODEL_SCHEMA = {
     "name": "Model jakości",
     "type": "composite",
-    "default_weights": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    "expert_weights": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     "subelements": [
         {
             "name": "Funkcjonalność",
             "type": "composite",
-            "default_weights": [1.0, 1.0],
+            "expert_weights": [1.0, 1.0],
             "subelements": [
                 {
                     "name": "Kompletność funkcjonalna",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Pokrycie funkcjonalne",
@@ -387,7 +386,7 @@ STANDARD_MODEL_SCHEMA = {
                 {
                     "name": "Poprawność funkcjonalna",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Poprawność funkcjonalna metryka",
@@ -401,12 +400,12 @@ STANDARD_MODEL_SCHEMA = {
         {
             "name": "Wydajność",
             "type": "composite",
-            "default_weights": [1.0, 1.0],
+            "expert_weights": [1.0, 1.0],
             "subelements": [
                 {
                     "name": "Wydajność czasowa",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Prawidłowy czas reakcji",
@@ -418,7 +417,7 @@ STANDARD_MODEL_SCHEMA = {
                 {
                     "name": "Efektywność interakcji",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Liczba kroków",
@@ -432,12 +431,12 @@ STANDARD_MODEL_SCHEMA = {
         {
             "name": "Satysfakcja",
             "type": "composite",
-            "default_weights": [1.0, 1.0, 1.0, 1.0],
+            "expert_weights": [1.0, 1.0, 1.0, 1.0],
             "subelements": [
                 {
                     "name": "Łatwość użycia",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Sukces zadania użytkownika",
@@ -449,12 +448,12 @@ STANDARD_MODEL_SCHEMA = {
                 {
                     "name": "Zrozumiałość",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Możliwość monitorowania",
                             "type": "composite",
-                            "default_weights": [1.0],
+                            "expert_weights": [1.0],
                             "subelements": [
                                 {
                                     "name": "Heurystyka 1",
@@ -468,12 +467,12 @@ STANDARD_MODEL_SCHEMA = {
                 {
                     "name": "Łatwość opanowania usługi",
                     "type": "composite",
-                    "default_weights": [1.0, 1.0],
+                    "expert_weights": [1.0, 1.0],
                     "subelements": [
                         {
                             "name": "Samoopis interfejsu użytkownika",
                             "type": "composite",
-                            "default_weights": [1.0, 1.0],
+                            "expert_weights": [1.0, 1.0],
                             "subelements": [
                                 {
                                     "name": "Heurystyka 2",
@@ -490,7 +489,7 @@ STANDARD_MODEL_SCHEMA = {
                         {
                             "name": "Ustawienie wartości domyślnych",
                             "type": "composite",
-                            "default_weights": [1.0],
+                            "expert_weights": [1.0],
                             "subelements": [
                                 {
                                     "name": "Heurystyka 6",
@@ -504,12 +503,12 @@ STANDARD_MODEL_SCHEMA = {
                 {
                     "name": "Odporność na błędy użytkownika",
                     "type": "composite",
-                    "default_weights": [1.0, 1.0],
+                    "expert_weights": [1.0, 1.0],
                     "subelements": [
                         {
                             "name": "Możliwość anulowania działań",
                             "type": "composite",
-                            "default_weights": [1.0],
+                            "expert_weights": [1.0],
                             "subelements": [
                                 {
                                     "name": "Heurystyka 3",
@@ -521,7 +520,7 @@ STANDARD_MODEL_SCHEMA = {
                         {
                             "name": "Ochrona przed błędami użytkownika",
                             "type": "composite",
-                            "default_weights": [1.0],
+                            "expert_weights": [1.0],
                             "subelements": [
                                 {
                                     "name": "Heurystyka 5",
@@ -537,12 +536,12 @@ STANDARD_MODEL_SCHEMA = {
         {
             "name": "Wiarygodność",
             "type": "composite",
-            "default_weights": [1.0],
+            "expert_weights": [1.0],
             "subelements": [
                 {
                     "name": "Niezawodność",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Dostępność Usługi",
@@ -556,12 +555,12 @@ STANDARD_MODEL_SCHEMA = {
         {
             "name": "Elastyczność",
             "type": "composite",
-            "default_weights": [1.0, 1.0],
+            "expert_weights": [1.0, 1.0],
             "subelements": [
                 {
                     "name": "Integracyjność",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Zgodność formatów danych",
@@ -573,7 +572,7 @@ STANDARD_MODEL_SCHEMA = {
                 {
                     "name": "Konfigurowalność",
                     "type": "composite",
-                    "default_weights": [1.0, 1.0],
+                    "expert_weights": [1.0, 1.0],
                     "subelements": [
                         {
                             "name": "Funkcjonalna możliwość personalizacji",
@@ -592,12 +591,12 @@ STANDARD_MODEL_SCHEMA = {
         {
             "name": "Ochrona",
             "type": "composite",
-            "default_weights": [1.0],
+            "expert_weights": [1.0],
             "subelements": [
                 {
                     "name": "Poufność",
                     "type": "composite",
-                    "default_weights": [1.0],
+                    "expert_weights": [1.0],
                     "subelements": [
                         {
                             "name": "Kontrola dostępu",
@@ -634,7 +633,6 @@ def collect_node_scores(
     Recursively collects evaluation results for an element and its subelements
     up to max_depth.
     """
-    # 1. Calculate scenario scores for the current element
     node_results = {
         "name": element.name,
         "type": "composite" if isinstance(element, CompositeElement) else "procedure",
@@ -644,7 +642,6 @@ def collect_node_scores(
         }
     }
 
-    # 2. If element is a composite and we haven't reached max_depth, drill down into children
     if isinstance(element, CompositeElement) and current_depth < max_depth and element.subelements:
         node_results["subelements"] = [
             collect_node_scores(child, context, scenarios, current_depth + 1, max_depth)
@@ -699,7 +696,6 @@ def load_quality_metrics_from_csv(file_path: str) -> Dict[str, List[float]]:
     with open(file_path, mode="r", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         
-        # Initialize empty lists for all column headers
         if reader.fieldnames:
             for header in reader.fieldnames:
                 clean_header = header.strip()
@@ -712,7 +708,6 @@ def load_quality_metrics_from_csv(file_path: str) -> Dict[str, List[float]]:
                     continue
                 col_name = col_name.strip()
                 
-                # Filter out missing cells, None strings, or spaces
                 if val is None:
                     continue
                 val_str = str(val).strip().strip('"\'')
@@ -723,7 +718,6 @@ def load_quality_metrics_from_csv(file_path: str) -> Dict[str, List[float]]:
                     score = float(val_str)
                     quality_metrics[col_name].append(score)
                 except ValueError:
-                    # Ignore unparseable non-numeric text entries
                     pass
 
     return quality_metrics
@@ -763,14 +757,13 @@ def load_procedure_inputs_from_csv(file_path: str, delimiter: str = ";") -> Dict
 
     with open(file_path, mode="r", encoding="utf-8-sig") as f:
         reader = csv.reader(f, delimiter=delimiter)
-        header = next(reader, None)  # Skip header row
+        header = next(reader, None) 
 
         for row in reader:
             if not row or not row[0].strip():
                 continue
 
             proc_name = row[0].strip()
-            # Filter out empty trailing cells (e.g. from rows with fewer columns)
             raw_cells = [cell.strip() for cell in row[1:] if cell.strip()]
 
             if not raw_cells:
@@ -821,3 +814,26 @@ def build_payload_from_files(
         payload["weights"] = load_weights_from_csv(weights_csv)
 
     return payload
+
+
+def apply_expert_weights(
+    model: ModelElement,
+    expert_weights: Union[str, Dict[str, Dict[str, float]]]
+) -> None:
+    """Recursively updates expert_weights list in-place by matching child names to their index."""
+    if isinstance(expert_weights, str):
+        expert_weights = load_weights_from_csv(expert_weights)
+
+    if isinstance(model, CompositeElement):
+        if model.name in expert_weights:
+            node_overrides = expert_weights[model.name]
+
+            if not isinstance(model.expert_weights, list):
+                model.expert_weights = [1.0] * len(model.subelements)
+
+            for i, child in enumerate(model.subelements):
+                if child.name in node_overrides:
+                    model.expert_weights[i] = float(node_overrides[child.name])
+
+        for child in model.subelements:
+            apply_expert_weights(child, expert_weights)

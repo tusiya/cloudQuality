@@ -1,0 +1,14 @@
+parent_name,child_name,weight
+Model jakości,Funkcjonalność,0.8
+Model jakości,Wydajność,0.8
+Model jakości,Satysfakcja,0.9
+Model jakości,Wiarygodność,0.5
+Model jakości,Elastyczność,1.0
+Model jakości,Ochrona,1.0
+Wydajność,Wydajność czasowa,0.4
+Wydajność,Efektywność interakcji,0.8
+Satysfakcja,Łatwość użycia,1
+Satysfakcja,Zrozumiałość,1
+Satysfakcja,Łatwość opanowania usługi,1
+Satysfakcja,Odporność na błędy użytkownika,0.8
+Wiarygodność,Niezawodność,0.5
