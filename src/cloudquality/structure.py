@@ -168,3 +168,49 @@ OPINION_COLUMN_NAMES = {
     "O15 Konfigurowalność interfejsu użytkownika": "Konfigurowalność interfejsu użytkownika",
     "O16 Kontrola dostępu": "Kontrola dostępu"
 }
+
+OUTPUT_HIERARCHY_p = {
+    "Model jakości": criteria,
+    "Wydajność": subcriteria["Wydajność"],
+    "Satysfakcja użytkowników": [
+        "Łatwość użycia",
+        "Zrozumiałość obsługi",
+        "Łatwość opanowania obsługi",
+        "Odporność na błędy użytkownika"
+    ],
+    "Wiarygodność": ["Niezawodność"]
+}
+
+OUTPUT_HIERARCHY = {
+    "Model jakości": criteria,
+    **subcriteria,
+    **subsubcriteria
+}
+
+HEURISTIC_COLUMN_NAMES = {
+    "Heurystyka 1": "Możliwość monitorowania",
+    "Heurystyka 2": "Samoopis interfejsu użytkownika",
+    "Heurystyka 3": "Możliwość anulowania działań",
+    "Heurystyka 4": "Samoopis interfejsu użytkownika",
+    "Heurystyka 5": "Ochrona przed błędami użytkownika",
+    "Heurystyka 6": "Ustawienie wartości domyślnych"
+}
+
+MODEL_COLUMN_ORDER = [
+    "Pokrycie funkcjonalne",
+    "Poprawność funkcjonalna metryka",
+    "Prawidłowy czas reakcji",
+    "Liczba kroków",
+    "Sukces zadania użytkownika",
+    "Heurystyka 1",
+    "Heurystyka 2",
+    "Heurystyka 3",
+    "Heurystyka 4",
+    "Heurystyka 5",
+    "Heurystyka 6",
+    "Dostępność Usługi",
+    "Zgodność formatów danych",
+    "Funkcjonalna możliwość personalizacji",
+    "Konfigurowalność interfejsu użytkownika",
+    "Kontrola dostępu"
+]

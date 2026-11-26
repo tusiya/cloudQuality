@@ -789,7 +789,15 @@ def load_weights_from_csv(file_path: str) -> Dict[str, Dict[str, float]]:
         for row in reader:
             parent = row["parent_name"].strip()
             child = row["child_name"].strip()
-            weight_val = float(row["weight"].strip())
+
+            ##### fixing an error
+            weight_text = row["weight"].strip()
+
+            if not weight_text:
+                continue
+
+            weight_val = float(weight_text)
+            #####
 
             if parent not in weights:
                 weights[parent] = {}
