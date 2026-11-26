@@ -1,4 +1,4 @@
-FILENAME = "initial_version" # nazwa pliku z danymi od respondentów znajdującego się w folderze resources
+FILENAME = "scores_ver_2" # nazwa pliku z danymi od respondentów znajdującego się w folderze resources
 
 criteria = ["Funkcjonalność", "Wydajność", "Satysfakcja użytkowników", "Wiarygodność", "Elastyczność", "Ochrona"]
 

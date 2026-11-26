@@ -1,8 +1,8 @@
 ﻿Criterion,System metrics + equal weights,User surveys + AHP weights,System metrics + AHP weights
-Model jakości,4.2678,3.2388,3.7784
-Funkcjonalność,4.8201,3.2001,4.7992
-Wydajność,4.45,3.2819,4.4461
-Satysfakcja,3.211,3.2324,3.2168
-Wiarygodność,4.0,3.0,4.0
-Elastyczność,4.1257,3.5648,4.0956
-Ochrona,5.0,3.0833,5.0
+Model jakości,4.2678,3.5232,3.808
+Funkcjonalność,4.8201,3.6419,4.7915
+Wydajność,4.45,3.6261,4.4548
+Satysfakcja,3.211,3.426,3.2118
+Wiarygodność,4.0,3.5,4.0
+Elastyczność,4.1257,3.8612,4.199
+Ochrona,5.0,3.5294,5.0
