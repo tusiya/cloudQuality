@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-# import variants.intuition as vi
+import variants.intuition as vi
 
 # survey = vi.read_survey()
 # survey = vi.data_cleaning(survey)
@@ -10,6 +10,8 @@
 # # print(survey.shape)
 
 print("----------------------------------------------------\n\n-------------------------------------------------------")
+
+vi.intuition()
 
 # categories = vi.choose_category(survey)
 

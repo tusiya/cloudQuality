@@ -1,9 +1,9 @@
 FILENAME = "initial_version" # nazwa pliku z danymi od respondentów znajdującego się w folderze resources
 
-criteria = ["Funcjonalność", "Wydajność", "Satysfakcja użytkowników", "Wiarygodność", "Elastyczność", "Ochrona"]
+criteria = ["Funkcjonalność", "Wydajność", "Satysfakcja użytkowników", "Wiarygodność", "Elastyczność", "Ochrona"]
 
 subcriteria = {
-    "Funcjonalność": ["Kompletność funcjonalna", "Poprawność funkcjonalna"],
+    "Funkcjonalność": ["Kompletność funkcjonalna", "Poprawność funkcjonalna"],
     "Wydajność": ["Wydajność czasowa", "Efektywność interakcji"],
     "Satysfakcja użytkowników": ["Łatwość użycia", "Zrozumiałość obsługi", "Łatwość opanowania obsługi"],
     "Wiarygodność": ["Odporność na błędy użytkownika", "Niezawodność"],
@@ -12,7 +12,7 @@ subcriteria = {
 }
 
 subsubcriteria = {
-    "Kompletność funcjonalna": ["Pokrycie funkcjonalne"],
+    "Kompletność funkcjonalna": ["Pokrycie funkcjonalne"],
     "Poprawność funkcjonalna": ["Poprawność funkcjonalna"],
     "Wydajność czasowa": ["Prawidłowy czas reakcji"],
     "Efektywność interakcji": ["Liczba kroków potrzebnych do wykonania zadania"],
@@ -21,7 +21,7 @@ subsubcriteria = {
     "Łatwość opanowania obsługi": ["Samoopis interfejsu użytkownika", "Ustawienie wartości domyślnych"],
     "Odporność na błędy użytkownika": ["Możliwość anulowania działań", "Ochrona przed błędami użytkownika"],
     "Niezawodność": ["Dostępność usługi"],
-    "Integracyjność": ["Współistnienie z innymi usługami", "Zgodność formatów danych"],
+    "Integracyjność": ["Zgodność formatów danych"],
     "Konfigurowalność": ["Funkcjonalna możliwość personalizacji", "Konfigurowalność interfejsu użytkownika"],
     "Poufność": ["Kontrola dostępu"]
 }
@@ -55,7 +55,7 @@ def change_survey_colnames(survey): # kolumny z ocenami zaczynają się na "O", 
     cols[23] = "W3 Współistnienie z innymi usługami vs Zgodność formatów danych"
     cols[24] = "W4 Funkcjonalna możliwość personalizacji vs Konfigurowalność interfejsu użytkownika"
 
-    cols[25] = "W5 Kompletność funcjonalna vs Poprawność funkcjonalna"
+    cols[25] = "W5 Kompletność funkcjonalna vs Poprawność funkcjonalna"
     cols[26] = "W6 Wydajność czasowa vs Efektywność interakcji"
     cols[27] = "W7 Łatwość użycia vs Zrozumiałość obsługi"
     cols[28] = "W8 Łatwość użycia vs Łatwość opanowania obsługi"
@@ -86,3 +86,85 @@ def change_survey_colnames(survey): # kolumny z ocenami zaczynają się na "O", 
 
 data_removing_criteria = [["Wiek", "Mniej niż 18"], # nazwa kolumny, wartość
                           ["Grupa", "W ogóle nie korzystam"]]
+
+pairwise_comparisons = {
+    "Funkcjonalność": [
+        ("W5 Kompletność funkcjonalna vs Poprawność funkcjonalna",
+         "Kompletność funkcjonalna",
+         "Poprawność funkcjonalna")
+    ],
+
+    "Wydajność": [
+        ("W6 Wydajność czasowa vs Efektywność interakcji",
+         "Wydajność czasowa",
+         "Efektywność interakcji")
+    ],
+
+    "Satysfakcja użytkowników": [
+        ("W7 Łatwość użycia vs Zrozumiałość obsługi",
+         "Łatwość użycia",
+         "Zrozumiałość obsługi"),
+
+        ("W8 Łatwość użycia vs Łatwość opanowania obsługi",
+         "Łatwość użycia",
+         "Łatwość opanowania obsługi"),
+
+        ("W9 Zrozumiałość obsługi vs Łatwość opanowania obsługi",
+         "Zrozumiałość obsługi",
+         "Łatwość opanowania obsługi")
+    ],
+
+    "Wiarygodność": [
+        ("W10 Odporność na błędy użytkownika vs Niezawodność",
+         "Odporność na błędy użytkownika",
+         "Niezawodność")
+    ],
+
+    "Elastyczność": [
+        ("W11 Integracyjność vs Konfigurowalność",
+         "Integracyjność",
+         "Konfigurowalność")
+    ],
+        "Łatwość opanowania obsługi": [
+        ("W1 Samoopis interfejsu użytkownika vs Ustawienie wartości domyślnych",
+         "Samoopis interfejsu użytkownika",
+         "Ustawienie wartości domyślnych")
+    ],
+
+    "Odporność na błędy użytkownika": [
+        ("W2 Możliwość anulowania działań vs Ochrona przed błędami użytkownika",
+         "Możliwość anulowania działań",
+         "Ochrona przed błędami użytkownika")
+    ],
+
+    "Konfigurowalność": [
+        ("W4 Funkcjonalna możliwość personalizacji vs Konfigurowalność interfejsu użytkownika",
+         "Funkcjonalna możliwość personalizacji",
+         "Konfigurowalność interfejsu użytkownika")
+    ]
+}
+
+from itertools import combinations
+
+root_comparisons = [
+    (f"W{i} {first} vs {second}", first, second)
+    for i, (first, second) in enumerate(combinations(criteria, 2), start=12)
+]
+
+OPINION_COLUMN_NAMES = {
+    "O1 Pokrycie funkcjonalne": "Pokrycie funkcjonalne",
+    "O2 Poprawność funkcjonalna": "Poprawność funkcjonalna metryka",
+    "O3 Średni czas reakcji": "Prawidłowy czas reakcji",
+    "O4 Liczba kroków potrzebnych do wykonania zadania": "Liczba kroków",
+    "O5 Sukces zadania użytkownika": "Sukces zadania użytkownika",
+    "O6 Możliwość monitorowania": "Możliwość monitorowania",
+    "O7 Samoopis interfejsu użytkownika": "Samoopis interfejsu użytkownika",
+    "O8 Ustawienie wartości domyślnych": "Ustawienie wartości domyślnych",
+    "O9 Możliwość anulowania działań": "Możliwość anulowania działań",
+    "O10 Ochrona przed błędami użytkownika": "Ochrona przed błędami użytkownika",
+    "O11 Dostępność usługi": "Dostępność Usługi",
+    "O13 Zgodność formatów danych": "Zgodność formatów danych",
+    "O14 Funkcjonalna możliwość personalizacji": "Funkcjonalna możliwość personalizacji",
+    "O15 Konfigurowalność interfejsu użytkownika": "Konfigurowalność interfejsu użytkownika",
+    "O16 Kontrola dostępu": "Kontrola dostępu"
+}
