@@ -310,11 +310,11 @@ def generate_model_comparison_visualizations(comparison, show=True):
     - columns = model scenarios
     """
 
-    print("\nGenerating model comparison visualizations...")
+    # print("\nGenerating model comparison visualizations...")
 
-    differences = calculate_model_differences(comparison)
+    # differences = calculate_model_differences(comparison)
 
     plot_model_comparison(comparison, show)
-    plot_model_differences(differences, show)
+    # plot_model_differences(differences, show)
 
-    return differences
+    # return differences

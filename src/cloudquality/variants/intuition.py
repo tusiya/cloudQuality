@@ -100,7 +100,7 @@ def choose_category(survey):
     return options
 
 def filter_survey_by_categories(survey, options, selections=None):
-    if not selections:
+    if selections is None:
         return survey.reset_index(drop=True)
 
     selections = set(selections)
@@ -235,101 +235,101 @@ def export_example_version(survey):
     print(f"Exported {len(output)} hierarchy relationships.")
 
 
-def export_example_version_p(survey):
-    rows = []
+# def export_example_version_p(survey):
+#     rows = []
 
-    # Root criteria
-    root = create_comparison(survey, "Model jakości", st.root_comparisons)
+#     # Root criteria
+#     root = create_comparison(survey, "Model jakości", st.root_comparisons)
 
-    for child in st.criteria:
-        name = "Satysfakcja" if child == "Satysfakcja użytkowników" else child
-        rows.append({
-            "parent_name": "Model jakości",
-            "child_name": name,
-            "weight": root.target_weights[child]
-        })
+#     for child in st.criteria:
+#         name = "Satysfakcja" if child == "Satysfakcja użytkowników" else child
+#         rows.append({
+#             "parent_name": "Model jakości",
+#             "child_name": name,
+#             "weight": root.target_weights[child]
+#         })
 
-    # Wydajność
-    comparison = create_comparison(
-        survey, "Wydajność", st.pairwise_comparisons["Wydajność"]
-    )
+#     # Wydajność
+#     comparison = create_comparison(
+#         survey, "Wydajność", st.pairwise_comparisons["Wydajność"]
+#     )
 
-    for child in st.subcriteria["Wydajność"]:
-        rows.append({
-            "parent_name": "Wydajność",
-            "child_name": child,
-            "weight": comparison.target_weights[child]
-        })
+#     for child in st.subcriteria["Wydajność"]:
+#         rows.append({
+#             "parent_name": "Wydajność",
+#             "child_name": child,
+#             "weight": comparison.target_weights[child]
+#         })
 
-    # Satysfakcja
-    comparison = create_comparison(
-        survey,
-        "Satysfakcja użytkowników",
-        st.pairwise_comparisons["Satysfakcja użytkowników"]
-    )
+#     # Satysfakcja
+#     comparison = create_comparison(
+#         survey,
+#         "Satysfakcja użytkowników",
+#         st.pairwise_comparisons["Satysfakcja użytkowników"]
+#     )
 
-    labels = {
-        "Łatwość użycia": "Łatwość użycia",
-        "Zrozumiałość obsługi": "Zrozumiałość",
-        "Łatwość opanowania obsługi": "Łatwość opanowania usługi"
-    }
+#     labels = {
+#         "Łatwość użycia": "Łatwość użycia",
+#         "Zrozumiałość obsługi": "Zrozumiałość",
+#         "Łatwość opanowania obsługi": "Łatwość opanowania usługi"
+#     }
 
-    for child, label in labels.items():
-        rows.append({
-            "parent_name": "Satysfakcja",
-            "child_name": label,
-            "weight": comparison.target_weights[child]
-        })
+#     for child, label in labels.items():
+#         rows.append({
+#             "parent_name": "Satysfakcja",
+#             "child_name": label,
+#             "weight": comparison.target_weights[child]
+#         })
 
-    rows.append({
-        "parent_name": "Satysfakcja",
-        "child_name": "Odporność na błędy użytkownika",
-        "weight": None
-    })
+#     rows.append({
+#         "parent_name": "Satysfakcja",
+#         "child_name": "Odporność na błędy użytkownika",
+#         "weight": None
+#     })
 
-    # Wiarygodność
-    comparison = create_comparison(
-        survey, "Wiarygodność", st.pairwise_comparisons["Wiarygodność"]
-    )
+#     # Wiarygodność
+#     comparison = create_comparison(
+#         survey, "Wiarygodność", st.pairwise_comparisons["Wiarygodność"]
+#     )
 
-    rows.append({
-        "parent_name": "Wiarygodność",
-        "child_name": "Niezawodność",
-        "weight": comparison.target_weights["Niezawodność"]
-    })
+#     rows.append({
+#         "parent_name": "Wiarygodność",
+#         "child_name": "Niezawodność",
+#         "weight": comparison.target_weights["Niezawodność"]
+#     })
 
-    pd.DataFrame(rows).to_csv("../../weights.csv", index=False)
+#     pd.DataFrame(rows).to_csv("../../weights.csv", index=False)
 
 
-def export_survey_aligned_version(survey):
-    rows = []
+# def export_survey_aligned_version(survey):
+#     rows = []
 
-    hierarchy = {
-        "Model jakości": st.criteria,
-        "Wydajność": st.subcriteria["Wydajność"],
-        "Satysfakcja": st.subcriteria["Satysfakcja użytkowników"],
-        "Wiarygodność": st.subcriteria["Wiarygodność"]
-    }
+#     hierarchy = {
+#         "Model jakości": st.criteria,
+#         "Wydajność": st.subcriteria["Wydajność"],
+#         "Satysfakcja": st.subcriteria["Satysfakcja użytkowników"],
+#         "Wiarygodność": st.subcriteria["Wiarygodność"]
+#     }
 
-    for parent, children in hierarchy.items():
-        definitions = (
-            st.root_comparisons
-            if parent == "Model jakości"
-            else st.pairwise_comparisons[
-                "Satysfakcja użytkowników" if parent == "Satysfakcja" else parent
-            ]
-        )
+#     for parent, children in hierarchy.items():
+#         definitions = (
+#             st.root_comparisons
+#             if parent == "Model jakości"
+#             else st.pairwise_comparisons[
+#                 "Satysfakcja użytkowników" if parent == "Satysfakcja" else parent
+#             ]
+#         )
 
-        comparison = create_comparison(survey, parent, definitions)
+#         comparison = create_comparison(survey, parent, definitions)
 
-        for child in children:
-            rows.append({
-                "parent_name": parent,
-                "child_name": "Satysfakcja" if child == "Satysfakcja użytkowników" else child,
-                "weight": comparison.target_weights[child]
-            })
+#         for child in children:
+#             rows.append({
+#                 "parent_name": parent,
+#                 "child_name": "Satysfakcja" if child == "Satysfakcja użytkowników" else child,
+#                 "weight": comparison.target_weights[child]
+#             })
 
-    pd.DataFrame(rows).to_csv("../../weights_survey_aligned.csv", index=False)
+#     pd.DataFrame(rows).to_csv("../../weights_survey_aligned.csv", index=False)
 
 def export_user_surveys(survey):
     opinions = get_opinions(survey)

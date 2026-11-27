@@ -1,0 +1,34 @@
+﻿parent_name,child_name,weight
+Model jakości,Funkcjonalność,0.172
+Model jakości,Wydajność,0.151
+Model jakości,Satysfakcja użytkowników,0.143
+Model jakości,Wiarygodność,0.171
+Model jakości,Elastyczność,0.174
+Model jakości,Ochrona,0.189
+Funkcjonalność,Kompletność funkcjonalna,0.6
+Funkcjonalność,Poprawność funkcjonalna,0.4
+Wydajność,Wydajność czasowa,0.542
+Wydajność,Efektywność interakcji,0.458
+Satysfakcja użytkowników,Łatwość użycia,0.325
+Satysfakcja użytkowników,Zrozumiałość obsługi,0.324
+Satysfakcja użytkowników,Łatwość opanowania obsługi,0.351
+Wiarygodność,Odporność na błędy użytkownika,0.513
+Wiarygodność,Niezawodność,0.487
+Elastyczność,Integracyjność,0.598
+Elastyczność,Konfigurowalność,0.402
+Ochrona,Poufność,1.0
+Kompletność funkcjonalna,Pokrycie funkcjonalne,1.0
+Poprawność funkcjonalna,Poprawność funkcjonalna,1.0
+Wydajność czasowa,Prawidłowy czas reakcji,1.0
+Efektywność interakcji,Liczba kroków potrzebnych do wykonania zadania,1.0
+Łatwość użycia,Sukces zadania użytkownika,1.0
+Zrozumiałość obsługi,Możliwość monitorowania,1.0
+Łatwość opanowania obsługi,Samoopis interfejsu użytkownika,0.562
+Łatwość opanowania obsługi,Ustawienie wartości domyślnych,0.438
+Odporność na błędy użytkownika,Możliwość anulowania działań,0.37
+Odporność na błędy użytkownika,Ochrona przed błędami użytkownika,0.63
+Niezawodność,Dostępność usługi,1.0
+Integracyjność,Zgodność formatów danych,1.0
+Konfigurowalność,Funkcjonalna możliwość personalizacji,0.389
+Konfigurowalność,Konfigurowalność interfejsu użytkownika,0.611
+Poufność,Kontrola dostępu,1.0
